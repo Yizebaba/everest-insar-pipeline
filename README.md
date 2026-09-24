@@ -31,6 +31,12 @@ An autonomous, cloud-native Sentinel-1 InSAR processing and Line-Of-Sight (LOS) 
 Anyone can fork this repository and run it out-of-the-box without setting up local GDAL/SNAP/Jupyter environments.
 The entire workflow runs in GitHub Actions using official Copernicus openEO Python SDK.
 
+
+### Connected Ecosystem Repositories (多仓联动架构)
+This automated pipeline is part of the dual-engine Everest Glacier Monitoring System:
+1. **[everest-insar-pipeline](https://github.com/Yizebaba/everest-insar-pipeline)** (Backend Engine): Autonomous overpass sensing, openEO InSAR processing, adaptive bedrock zero-displacement calibration, and LOS inversion.
+2. **[hqmw-cryosphere-windy](https://github.com/Yizebaba/hqmw-cryosphere-windy)** (Frontend Visualization): Windy.com map plugin rendering verified bedrock anchor markers, displacement baselines, and candidate popups.
+
 ### Configuration (Repository Secrets)
 To enable live autonomous processing, set the following secrets in GitHub Settings:
 - `CDSE_USERNAME`: Your Copernicus Data Space Ecosystem username/email.
@@ -56,6 +62,12 @@ To enable live autonomous processing, set the following secrets in GitHub Settin
 3. **自适应基岩锚点与位移闭环**：
    - 自动在网格中搜寻相干性最高的坚硬基底作为零形变锚点；
    - 自动换算毫米级位移并生成 JSON 摘要与矢量成果。
+
+
+### 多仓全自动联动架构说明
+本自动化流水线与前端展示插件已实现 100% 自动跨仓闭环：
+1. **[everest-insar-pipeline](https://github.com/Yizebaba/everest-insar-pipeline)**（后端算力仓）：在卫星过境窗口期自动侦听、自动调用 openEO 集群干涉、自动完成基岩零形变平差与毫米位移解算；
+2. **[hqmw-cryosphere-windy](https://github.com/Yizebaba/hqmw-cryosphere-windy)**（前端展示仓）：接收后端推送的最新位移数据，自动递增版本并打包发布到 Windy 官方节点，直接在地图上动态呈现基岩不动点与形变连线！
 
 ### 部署与使用方法
 任何人只需 Fork 本仓库，并在 **Settings ➔ Secrets and variables ➔ Actions** 中填入：
