@@ -1,0 +1,4 @@
+numpy>=1.24.0
+requests>=2.31.0
+pydantic>=2.0.0
+openeo>=0.25.0
