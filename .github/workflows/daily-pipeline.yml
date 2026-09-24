@@ -1,0 +1,39 @@
+name: Daily InSAR Autonomous Pipeline
+
+on:
+  schedule:
+    # 每天 UTC 02:00 (北京时间 10:00) 自动定时执行一次
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Pipeline
+        env:
+          CDSE_USERNAME: ${{ secrets.CDSE_USERNAME }}
+          CDSE_PASSWORD: ${{ secrets.CDSE_PASSWORD }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          python pipeline.py
+
+      - name: Commit and Push Results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(data): auto-update latest InSAR displacement results" && git push)
