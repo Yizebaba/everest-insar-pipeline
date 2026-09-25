@@ -2,11 +2,15 @@ name: Sentinel-1 InSAR Autonomous Pipeline
 
 on:
   schedule:
-    # 结合 Sentinel-1 升轨 12 轨每天 UTC 12:13 (北京时间 20:13) 过境规律：
-    # 在数据上架窗口期 (UTC 14:00 - 18:00) 每 2 小时精准检测一次；其余时间每天自动保底巡检
     - cron: '0 14,16,18 * * *'
     - cron: '0 2 * * *'
   workflow_dispatch:
+    inputs:
+      run_auto_coder:
+        description: 'Whether to run LangGraph Auto-Coder Agent demonstration'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   run-pipeline:
@@ -27,17 +31,22 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Execute Pipeline
+      - name: Run LangGraph Auto-Coder Agent
+        if: ${{ github.event.inputs.run_auto_coder == 'true' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          python auto_coder_agent.py
+
+      - name: Execute Main Pipeline
         env:
           CDSE_USERNAME: ${{ secrets.CDSE_USERNAME }}
           CDSE_PASSWORD: ${{ secrets.CDSE_PASSWORD }}
-          GH_PAT: ${{ secrets.GH_PAT }}
+          GH_PAT: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
         run: |
           python pipeline.py
 
-      - name: Commit and Push Results
+      - name: Commit and Push Results & Auto-generated Code
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(data): auto-update latest InSAR displacement results" && git push)
+          git add data/ models/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore(agent): commit auto-generated module and updated InSAR results" && git push)
