@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "everest-glacier-engine"
+version = "1.0.0"
+description = "Autonomous Copernicus Sentinel-1 InSAR & GlaViTU/RGI glacier monitoring engine for Mount Everest"
+readme = "README.md"
+authors = [
+    { name = "qiqi", email = "yizebaba@gmail.com" }
+]
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.24.0",
+    "requests>=2.31.0",
+    "pydantic>=2.0.0",
+    "openeo>=0.25.0"
+]
+
+[project.scripts]
+everest-glacier = "pipeline:main"
+everest-rgi = "models.glavitu_rgi_bridge:extract_primary_glacier_meta"
+everest-itslive = "models.cloud_services_adapter:CloudGlacierVelocityService"
+
+[tool.setuptools]
+py-modules = ["pipeline", "auto_coder_agent", "everest_langgraph_pipeline"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["models*"]
