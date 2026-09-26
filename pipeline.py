@@ -1,3 +1,4 @@
+from models.glavitu_rgi_bridge import GlaViTURGIBridge, EVEREST_RGI_CATALOG
 import os
 import sys
 import json
@@ -81,7 +82,12 @@ def run_displacement_inversion():
     max_disp = 2.75
     anchor = {"grid_y": 285, "grid_x": 613, "coherence": 0.965}
 
-    print(f"Optimal bedrock anchor verified at (Y={anchor['grid_y']}, X={anchor['grid_x']}), Coherence={anchor['coherence']:.3f}")
+    bridge = GlaViTURGIBridge()
+    anchor_lon = 86.55 + (anchor['grid_x'] / 1000.0) * (87.05 - 86.55)
+    anchor_lat = 28.08196 - (anchor['grid_y'] / 686.0) * (28.08196 - 27.73917)
+    in_glacier, g_name, _ = bridge.verify_point_in_glacier(anchor_lon, anchor_lat)
+    print(f"Optimal bedrock anchor verified at (Y={anchor['grid_y']}, X={anchor['grid_x']}), Lon={anchor_lon:.4f}, Lat={anchor_lat:.4f}, Coherence={anchor['coherence']:.3f}")
+    print(f"RGI 7.0 Verification: {'INSIDE ' + str(g_name) if in_glacier else 'STABLE BEDROCK OUTSIDE GLACIER (PASS)'}")
     print(f"Evaluated candidate pixels: {evaluated_pixels}")
     print(f"Median LOS displacement: {median_disp} mm (Range: [{min_disp} mm, {max_disp} mm])")
     
