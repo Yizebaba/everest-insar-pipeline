@@ -74,3 +74,44 @@ To enable live autonomous processing, set the following secrets in GitHub Settin
 - `CDSE_USERNAME`：欧空局 Copernicus 账号
 - `CDSE_PASSWORD`：欧空局 Copernicus 密码
 即可享受每天自动无人值守解算！
+
+## 📦 Package Release & Agent Integration (软件包发布与 Agent 调用指南)
+
+This project is officially packaged and published as a standard Python Wheel package (`everest-glacier-engine`), ready to be called directly by AI Agents, LangGraph, or custom CLI scripts.
+
+### 1. Installation (安装)
+Install directly from GitHub Release via `pip`:
+```bash
+pip install https://github.com/Yizebaba/everest-insar-pipeline/releases/download/v1.0.0/everest_glacier_engine-1.0.0-py3-none-any.whl
+```
+Or install via git repository:
+```bash
+pip install git+https://github.com/Yizebaba/everest-insar-pipeline.git
+```
+
+### 2. CLI Execution (命令行直接运行)
+```bash
+everest-glacier
+```
+
+### 3. Agent & Python Invocation (Agent 代码直接调用)
+```python
+from pipeline import run_displacement_inversion
+from models.glavitu_rgi_bridge import GlaViTURGIBridge
+from models.cloud_services_adapter import CloudGlacierVelocityService, CloudInSARSAMAdapter
+
+# 1. Verify RGI 7.0 boundary
+bridge = GlaViTURGIBridge()
+in_glacier, name, debris_frac = bridge.verify_point_in_glacier(86.8585, 27.9868)
+print(f"Glacier Name: {name}, Debris Fraction: {debris_frac}")
+
+# 2. Query NASA ITS_LIVE baseline flow speed
+its_service = CloudGlacierVelocityService()
+its_meta = its_service.fetch_latest_itslive_metadata()
+print(f"Khumbu baseline flow speed: {its_meta.get('benchmark_velocity_khumbu_m_yr')} m/yr")
+
+# 3. Generate InSAR + SAM deformation region
+sam = CloudInSARSAMAdapter()
+feature = sam.generate_deformation_polygon_from_point(86.8585, 27.9868, disp_mm=0.66)
+print(f"SAM Polygon Area: {feature['properties']['area_approx_km2']} km2")
+```
