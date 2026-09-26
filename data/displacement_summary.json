@@ -1,25 +1,26 @@
 {
-  "pipeline": "Everest Autonomous InSAR LOS Displacement",
-  "timestamp_utc": "2026-09-26T14:56:34.119852",
+  "pipeline": "Everest Autonomous InSAR & Multi-Hazard Pipeline (v5.0)",
+  "timestamp_utc": "2026-09-26T15:04:03.879009",
   "insar_pair": {
     "master": "2026-09-04",
     "slave": "2026-09-16"
   },
   "burst_id": 23790,
   "wavelength_cm": 5.5465,
-  "phase_to_mm_factor": -4.4137644592959875,
   "results": {
-    "evaluated_candidate_pixels": 20278,
-    "min_mm": 0.46,
-    "max_mm": 2.75,
-    "median_mm": 0.66,
-    "mean_mm": 0.79,
-    "bedrock_anchor": {
-      "grid_y": 285,
-      "grid_x": 613,
-      "coherence": 0.965
+    "insar_displacement": {
+      "evaluated_candidate_pixels": 20278,
+      "median_mm": 0.66,
+      "mean_mm": 0.79,
+      "min_mm": 0.46,
+      "max_mm": 2.75,
+      "bedrock_anchor": {
+        "grid_y": 285,
+        "grid_x": 613,
+        "coherence": 0.965
+      }
     },
-    "itslive_baseline": {
+    "itslive_velocity_baseline": {
       "status": "success",
       "source": "NASA JPL / NSIDC MEaSUREs ITS_LIVE (AWS S3 Cloud Zarr)",
       "datacube_id": "ITS_LIVE_velocity_EPSG32645_120m_X450000_Y3050000",
@@ -76,6 +77,56 @@
         }
       ]
     },
+    "optical_crevasse_state": {
+      "ndsi": 0.797,
+      "spatial_gradient_magnitude": 0.22,
+      "is_crevasse_detected": false,
+      "fracture_intensity": 0.191,
+      "surface_state": "HOMOGENEOUS_ICE_SURFACE",
+      "hazard_classification": "STABLE_SMOOTH_ICE"
+    },
+    "glof_lake_risk": {
+      "lake_name": "Imja Tsho (\u4f0a\u59c6\u624e\u6e56)",
+      "current_area_km2": 1.45,
+      "baseline_area_km2": 1.42,
+      "expansion_ratio": 1.021,
+      "dam_stability_coherence": 0.78,
+      "glof_risk_score": 0.0,
+      "glof_risk_level": "STABLE_NORMAL",
+      "recommended_action": "CONTINUOUS_REMOTE_MONITORING"
+    },
+    "avalanche_icefall": {
+      "slope_degrees": 32.5,
+      "is_critical_avalanche_slope": true,
+      "gravitational_instability_index": 0.4,
+      "avalanche_icefall_trigger_condition": false,
+      "hazard_classification": "MONITORED_ACCUMULATION"
+    },
+    "dem_physical_constraint": {
+      "hazard_type": "insar_displacement",
+      "elevation_m": 5800.0,
+      "slope_degrees": 32.5,
+      "aspect_degrees": 185.0,
+      "physical_constraint_status": "PASSED_PHYSICAL_CONSTRAINT",
+      "is_valid_candidate": true,
+      "veto_reason": null
+    },
+    "engine_decision": {
+      "decision": "ROUTINE_BACKGROUND_MONITORING",
+      "status": "NORMAL_PHYSICAL_CREEP",
+      "is_event_candidate": false,
+      "overall_confidence": 0.62,
+      "uncertainty_score": 0.38,
+      "uncertainty_reasons": [],
+      "active_evidences": [
+        "InSAR LOS creep (0.66 mm)"
+      ],
+      "persistence_index": 0.4,
+      "spatial_consistency_index": 0.95,
+      "evidence_score": 0.05,
+      "human_verification_required": false,
+      "alert_dispatched": false
+    },
     "sam_deformation_feature": {
       "type": "Feature",
       "properties": {
@@ -126,6 +177,44 @@
             [
               86.862151,
               27.986862
+            ]
+          ]
+        ]
+      }
+    },
+    "crevasse_feature": {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "optical_crevasse_fracture_field",
+        "center_lon": 86.858568,
+        "center_lat": 27.986862,
+        "crevasse_strike_degrees": 65.0,
+        "approx_area_km2": 0.108,
+        "structural_morphology": "transverse_crevasses_extensional_flow"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              86.852222,
+              27.986047
+            ],
+            [
+              86.863356,
+              27.990616
+            ],
+            [
+              86.864914,
+              27.987677
+            ],
+            [
+              86.85378,
+              27.983108
+            ],
+            [
+              86.852222,
+              27.986047
             ]
           ]
         ]
