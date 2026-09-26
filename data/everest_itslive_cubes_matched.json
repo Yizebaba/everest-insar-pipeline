@@ -1,0 +1,78 @@
+{
+  "title": "NASA MEaSUREs ITS_LIVE Everest Glacier Velocity DataCubes",
+  "target_coordinates": {
+    "lon": 86.925,
+    "lat": 27.988,
+    "region": "Mount Everest / Khumbu / Rongbuk"
+  },
+  "velocity_tile_layer": "https://its-live-data.s3-us-west-2.amazonaws.com/velocity_mosaic/v2/static/v_tiles_global/{z}/{x}/{y}.png",
+  "matched_cubes": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              85.991058,
+              27.118846
+            ],
+            [
+              87.0,
+              27.12247
+            ],
+            [
+              87.0,
+              28.025255
+            ],
+            [
+              85.982767,
+              28.02149
+            ],
+            [
+              85.991058,
+              27.118846
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "fill-opacity": 0.4576034495430825,
+        "fill": "red",
+        "roi_percent_coverage": 54.23965504569175,
+        "epsg": 32645,
+        "geometry_epsg": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                400000,
+                3000000
+              ],
+              [
+                500000,
+                3000000
+              ],
+              [
+                500000,
+                3100000
+              ],
+              [
+                400000,
+                3100000
+              ],
+              [
+                400000,
+                3000000
+              ]
+            ]
+          ]
+        },
+        "datacube_exist": 1,
+        "zarr_url": "https://its-live-data.s3.amazonaws.com/datacubes/v2-updated-october2024/N20E080/ITS_LIVE_vel_EPSG32645_G0120_X450000_Y3050000.zarr",
+        "granule_count": 88841,
+        "composite_zarr_url": "https://its-live-data.s3.amazonaws.com/composites/annual/v2-updated-september2025/N20E080/ITS_LIVE_velocity_EPSG32645_120m_X450000_Y3050000.zarr"
+      }
+    }
+  ]
+}
