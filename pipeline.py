@@ -1,3 +1,4 @@
+from models.cloud_services_adapter import CloudGlacierVelocityService, CloudInSARSAMAdapter
 from models.glavitu_rgi_bridge import GlaViTURGIBridge, EVEREST_RGI_CATALOG
 import os
 import sys
@@ -152,7 +153,25 @@ def main():
     print("=== STARTING EVEREST INSAR PRECISE AUTONOMOUS PIPELINE ===")
     master_date, slave_date = check_new_acquisitions_precise()
     submit_openeo_insar_job(master_date, slave_date)
+    # 调用 NASA ITS_LIVE 云端现成冰川流速服务
+    print("\n[Service 1/2] Connecting to NASA ITS_LIVE cloud repository for baseline velocity...")
+    its_service = CloudGlacierVelocityService()
+    its_meta = its_service.fetch_latest_itslive_metadata()
+    print(f"ITS_LIVE Baseline Service Status: {its_meta.get('status')}")
+    print(f"Verified Reference Velocity (Khumbu Glacier): {its_meta.get('benchmark_velocity_khumbu_m_yr')} m/yr")
+
     stats = run_displacement_inversion()
+
+    # 调用 InSAR + SAM 多边形生成器
+    print("\n[Service 2/2] Generating InSAR + SAM deformation region polygon...")
+    sam_adapter = CloudInSARSAMAdapter()
+    primary_cand_lon, primary_cand_lat = 86.858568, 27.986862
+    sam_polygon_feature = sam_adapter.generate_deformation_polygon_from_point(
+        primary_cand_lon, primary_cand_lat, disp_mm=stats["median_mm"], radius_km=0.35
+    )
+    print(f"SAM Deformation Polygon generated around ({primary_cand_lon}, {primary_cand_lat}) with Area ~{sam_polygon_feature['properties']['area_approx_km2']} km2")
+    stats["itslive_baseline"] = its_meta
+    stats["sam_deformation_feature"] = sam_polygon_feature
 
     data_dir = "data"
     os.makedirs(data_dir, exist_ok=True)
