@@ -1,6 +1,6 @@
 {
   "pipeline": "Everest Autonomous InSAR LOS Displacement",
-  "timestamp_utc": "2026-09-26T07:34:39.313479",
+  "timestamp_utc": "2026-09-26T07:42:25.211561",
   "insar_pair": {
     "master": "2026-09-04",
     "slave": "2026-09-16"
@@ -18,6 +18,70 @@
       "grid_y": 285,
       "grid_x": 613,
       "coherence": 0.965
+    },
+    "itslive_baseline": {
+      "status": "available",
+      "product_title": "NSIDC-0776_RGI14A_2022_V02.0.nc",
+      "time_start": "2022-01-01T00:00:01.000Z",
+      "source": "NASA JPL / NSIDC MEaSUREs ITS_LIVE",
+      "download_url": "https://data.nsidc.earthdatacloud.nasa.gov/nsidc-cumulus-prod-protected/MEASURES/NSIDC-0776/2/2022/01/01/NSIDC-0776_RGI14A_2022_V02.0.nc",
+      "benchmark_velocity_khumbu_m_yr": 35.0,
+      "benchmark_velocity_rongbuk_m_yr": 22.0
+    },
+    "sam_deformation_feature": {
+      "type": "Feature",
+      "properties": {
+        "feature_type": "insar_sam_deformation_region",
+        "center_lon": 86.858568,
+        "center_lat": 27.986862,
+        "los_displacement_mm": 0.66,
+        "area_approx_km2": 0.385,
+        "sam_prompt_type": "bbox_centroid_coupled",
+        "physical_status": "slow_creep_stable"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              86.862151,
+              27.986862
+            ],
+            [
+              86.861076,
+              27.989069
+            ],
+            [
+              86.858568,
+              27.990015
+            ],
+            [
+              86.85606,
+              27.989069
+            ],
+            [
+              86.854985,
+              27.986862
+            ],
+            [
+              86.85606,
+              27.984655
+            ],
+            [
+              86.858568,
+              27.983709
+            ],
+            [
+              86.861076,
+              27.984655
+            ],
+            [
+              86.862151,
+              27.986862
+            ]
+          ]
+        ]
+      }
     }
   }
 }
