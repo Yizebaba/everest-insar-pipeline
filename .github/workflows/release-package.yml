@@ -1,0 +1,61 @@
+name: Package & Release Everest Glacier Engine
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Build Tools
+        run: |
+          pip install --upgrade pip
+          pip install build wheel
+
+      - name: Build Standard Wheel & Source Package
+        run: |
+          python -m build
+
+      - name: Verify Package Contents
+        run: |
+          ls -la dist/
+
+      - name: Create GitHub Release with Package Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: Everest Glacier Engine ${{ github.event.inputs.release_tag }}
+          body: |
+            ## Everest Glacier Engine Release ${{ github.event.inputs.release_tag }}
+            
+            Autonomous InSAR, RGI 7.0 boundary verification, and NASA ITS_LIVE baseline monitoring package for Mount Everest.
+            
+            ### Quick Installation for Python & AI Agents:
+            ```bash
+            pip install https://github.com/Yizebaba/everest-insar-pipeline/releases/download/${{ github.event.inputs.release_tag }}/everest_glacier_engine-1.0.0-py3-none-any.whl
+            ```
+            
+            ### CLI Quick Run:
+            ```bash
+            everest-glacier
+            ```
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
