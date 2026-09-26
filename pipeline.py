@@ -156,9 +156,11 @@ def main():
     # 调用 NASA ITS_LIVE 云端现成冰川流速服务
     print("\n[Service 1/2] Connecting to NASA ITS_LIVE cloud repository for baseline velocity...")
     its_service = CloudGlacierVelocityService()
-    its_meta = its_service.fetch_latest_itslive_metadata()
-    print(f"ITS_LIVE Baseline Service Status: {its_meta.get('status')}")
-    print(f"Verified Reference Velocity (Khumbu Glacier): {its_meta.get('benchmark_velocity_khumbu_m_yr')} m/yr")
+    its_meta = its_service.fetch_real_glacier_velocity_series()
+    print(f"ITS_LIVE Cloud Zarr Status: {its_meta.get('status')}")
+    print(f"Historical 39-Year Baseline Mean: {its_meta.get('historical_baseline_mean_m_yr')} m/yr (Std: {its_meta.get('historical_baseline_std_m_yr')})")
+    print(f"Latest Observed Flow Speed: {its_meta.get('latest_observed_velocity_m_yr')} m/yr")
+    print(f"Velocity Anomaly Z-Score: {its_meta.get('velocity_anomaly_z_score')} (Accelerating: {its_meta.get('is_velocity_accelerating')})")
 
     stats = run_displacement_inversion()
 
