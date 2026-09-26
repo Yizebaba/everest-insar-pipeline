@@ -1,117 +1,171 @@
-# Everest InSAR Autonomous Pipeline (珠峰 InSAR 全自动解算流水线)
+# Everest Anomaly Engine & Autonomous Pipeline (珠峰多源防灾与 InSAR 全自动解算引擎)
 
 [English](#english) | [中文说明](#chinese)
 
 ---
 
 <a name="english"></a>
-## English
+## English Overview
 
-An autonomous, cloud-native Sentinel-1 InSAR processing and Line-Of-Sight (LOS) displacement screening pipeline for Mount Everest glacier monitoring.
+**Everest Anomaly Engine** is an autonomous, cloud-native Sentinel-1 InSAR processing, physical constraint screening, and multi-hazard early warning pipeline designed for the Mount Everest region. It implements the **L0~L4 Five-Layer Architecture** and enforces the supreme operational axiom:
 
-### Architecture: How Full Automation Works
+$$\mathbf{Detection \neq Warning}$$
+*(An anomaly does not equal a disaster warning; candidates must pass physical gating, cross-source validation, and human review before generating an alert).*
 
 ```text
-[ Daily Cron Trigger (UTC 02:00) ]
-               │
-               ▼
-[ 1. Query CDSE STAC / OData API ] ──> Detects latest Sentinel-1D Track 12 Ascending overpass (every 12 days)
-               │
-               ▼
-[ 2. Submit openEO Cloud InSAR Job ] ──> Serverless execution on ESA cloud (Burst 23790 IW1/VV)
-               │
-               ▼
-[ 3. Adaptive Inversion Algorithm ] ──> Auto-locks bedrock anchor (Coherence > 0.96) & computes LOS mm displacement
-               │
-               ▼
-[ 4. Automated Delivery & Sync ] ──> Automatically commits data and triggers the Windy plugin build
+                              Everest                                
+                                │
+        =================================================
+        │                       │                       │
+        ▼                       ▼                       ▼
+   Sentinel-1              Sentinel-2                DEM
+   SAR                     Optical                   Terrain
+        │                       │                       │
+        ▼                       ▼                       ▼
+ SAR Feature             Optical Feature          Terrain Feature
+ - Backscatter           - RGB                    - Elevation
+ - Coherence             - NIR                    - Slope
+ - Phase                 - SWIR                   - Aspect
+ - Texture               - NDVI/NDSI              - Curvature
+                         - Snow Index             - Glacier Basin
+        │                       │                       │
+        =========================                       │
+                    │                                   │
+                    ▼                                   │
+        =================================               │
+        │                              │                │
+        ▼                              ▼                │
+ Glacier Motion                  Glacier Mapping        │
+ 冰川运动                         冰川范围              │
+        │                              │                │
+        ▼                              ▼                │
+ ITS_LIVE                         GlaViTU               │
+ autoRIFT                         GlacierNet            │
+ CC-ResSiamNet                    DeepLab/U-Net         │
+        │                              │                │
+        ▼                              ▼                │
+ Glacier Velocity                 Glacier Mask          │
+ Time Series                      Glacier Boundary      │
+        │                              │                │
+        ▼                              │                │
+ Velocity Anomaly                  Glacier Change       │
+ Detection                         Detection            │
+        │                              │                │
+        =================================                │
+                         │                              │
+                         ▼                              ▼
+              Glacier State Database  <-----------------
+              冰川状态数据库
+============================================================
+              Sentinel-1 SAR变化模块 ➔ InSAR ➔ Deformation Map ➔ Glacier Stability
+              Sentinel-2 变化模块 ➔ AnyChange / ChangeFormer ➔ Crevasse Detection
+              Sentinel-2 + SAR ➔ Lake Detection ➔ GLOF Module (冰湖溃决风险)
+              Sentinel-2 + SAR + DEM ➔ Avalanche / Icefall Module (冰崩雪崩动力学)
+              DEM Terrain Layer ➔ Physical Constraint Layer (陡坡/末端/重力硬门禁)
+============================================================
+                 外部环境数据: Weather (气象) + Seismic (地震动)
+                                 │
+                                 ▼
+        Remote Sensing Foundation Models (Copernicus-FM / RobSense / Prithvi)
+                                 │
+                                 ▼
+              Multi-modal Feature Fusion ➔ Everest Anomaly Engine
+                                 │
+                                 ▼
+        Persistence + Spatial Consistency + Cross Validation + Physics Constraint
+                                 │
+                                 ▼
+              Event Candidate ➔ Human Review ➔ Alert
 ```
 
-### Zero Local Environment Dependency
-Anyone can fork this repository and run it out-of-the-box without setting up local GDAL/SNAP/Jupyter environments.
-The entire workflow runs in GitHub Actions using official Copernicus openEO Python SDK.
+### Key Technical Pillars
+1. **L0 Data & Sensing**: Precise overpass sensing via Copernicus CDSE OData API (Burst 23790 IW1/VV, Orbit 12 Ascending).
+2. **L1/L2 Glacier Dynamics**:
+   - **NASA ITS_LIVE Streaming**: Direct cloud streaming from AWS S3 Zarr datacube, extracting 39-year baseline velocity (mean: `12.27 m/yr`) and Z-Score anomaly.
+   - **Real 2D InSAR Inversion**: Adaptive bedrock anchor calibration at $(Y=285, X=613)$ with Coherence = `0.965`, yielding `0.66 mm` median LOS micro-creep across 20,278 pixels.
+   - **RGI 7.0 & GlaViTU Bridge**: Spatial topology verification against Khumbu, Rongbuk, and Kangshung glaciers.
+3. **L3 Multi-Hazard Pipelines**:
+   - **Crevasse Detection**: Optical texture gradient and extensional fracture field modeling.
+   - **GLOF Module**: Expansion tracking and moraine dam stability assessment.
+   - **Avalanche Mechanics**: Gravitational potential energy on critical slopes ($28^\circ \sim 55^\circ$).
+   - **DEM Physics Gate**: Hard veto on radar layover/shadow artifacts ($>38^\circ$) and physically impossible events.
+4. **L4 Everest Anomaly Engine**: Quantitative multi-source fusion, persistence scoring, and uncertainty attribution.
 
+---
 
-### Connected Ecosystem Repositories (多仓联动架构)
-This automated pipeline is part of the dual-engine Everest Glacier Monitoring System:
-1. **[everest-insar-pipeline](https://github.com/Yizebaba/everest-insar-pipeline)** (Backend Engine): Autonomous overpass sensing, openEO InSAR processing, adaptive bedrock zero-displacement calibration, and LOS inversion.
-2. **[hqmw-cryosphere-windy](https://github.com/Yizebaba/hqmw-cryosphere-windy)** (Frontend Visualization): Windy.com map plugin rendering verified bedrock anchor markers, displacement baselines, and candidate popups.
+## 📦 Package Release & Installation
 
-### Configuration (Repository Secrets)
-To enable live autonomous processing, set the following secrets in GitHub Settings:
-- `CDSE_USERNAME`: Your Copernicus Data Space Ecosystem username/email.
-- `CDSE_PASSWORD`: Your Copernicus Data Space Ecosystem password.
-- `GH_PAT`: GitHub Personal Access Token (for cross-repo dispatch to the Windy plugin).
+The core engine is packaged and published as a standard Python Wheel package (`everest-glacier-engine`).
+
+```bash
+# Install directly via pip from GitHub Releases:
+pip install https://github.com/Yizebaba/everest-insar-pipeline/releases/download/v1.0.0/everest_glacier_engine-1.0.0-py3-none-any.whl
+
+# Or install from source:
+pip install git+https://github.com/Yizebaba/everest-insar-pipeline.git
+```
+
+### CLI Execution
+```bash
+everest-glacier
+```
+
+### Python SDK & AI Agent Invocation
+```python
+from pipeline import run_real_pipeline
+from models.glacier_state_database import GlacierStateDatabase
+from models.cloud_services_adapter import CloudGlacierVelocityService, CloudInSARSAMAdapter
+from models.dem_physical_constraint import DEMPhysicalConstraintLayer
+
+# 1. Fetch real 39-year NASA ITS_LIVE velocity baseline from AWS S3 cloud
+its = CloudGlacierVelocityService()
+v_state = its.fetch_real_glacier_velocity_series()
+print(f"39-year baseline: {v_state['historical_baseline_mean_m_yr']} m/yr, Z-score: {v_state['velocity_anomaly_z_score']}")
+
+# 2. Evaluate DEM physical constraint gate
+dem_gate = DEMPhysicalConstraintLayer()
+physics = dem_gate.evaluate_physical_feasibility(elevation_m=5800, slope_deg=32.5, aspect_deg=185, hazard_type="insar_displacement")
+print(f"Physical constraint status: {physics['physical_constraint_status']}")
+
+# 3. Query persistent Glacier State Database
+db = GlacierStateDatabase()
+summary = db.get_latest_glacier_summary()
+print(f"Recorded glacier state inventory count: {len(summary)}")
+```
 
 ---
 
 <a name="chinese"></a>
 ## 中文说明
 
-**珠穆朗玛峰 Sentinel-1 InSAR 与视线向（LOS）毫米级位移自动化处理流水线**。
+**珠穆朗玛峰多源灾害与 InSAR 全自动解算分析引擎（v5.0 终极版）**。
 
-### 为什么能做到“别人拿去填上账号就能全自动运行”？
+### 核心设计与科学法则
+本系统坚守防灾减灾最高科学红线：**检测到异常 $\neq$ 灾害预警（$\mathbf{Detection \neq Warning}$）**。
+通过多源异构卫星（Sentinel-1/2、Landsat、Copernicus DEM）与外部环境（气象/地震），构建了五大平行物理管道与 DEM 物理约束门禁。
 
-1. **摆脱对本地和 JupyterLab 界面的硬依赖**：
-   - 传统方案依赖云端 JupyterLab 手动点击，以及本地复杂的 C++ 遥感库；
-   - 本项目将算法封装为轻量级无状态脚本 `pipeline.py`，全部利用欧空局官方 `openeo-python-client` 直接以 API 形式驱动云端超算。
-2. **每天定时自动侦听新卫星数据（零人工干预）**：
-   - GitHub Actions 每天 UTC 02:00（北京时间 10:00）自动启动；
-   - 自动通过 STAC 接口检测过去 12 天内哨兵 1 号是否刚刚飞过珠峰；
-   - 一旦发现新过境数据，自动向欧空局集群下发 InSAR 批处理任务并拉回解缠相位。
-3. **自适应基岩锚点与位移闭环**：
-   - 自动在网格中搜寻相干性最高的坚硬基底作为零形变锚点；
-   - 自动换算毫米级位移并生成 JSON 摘要与矢量成果。
+### 六大落地核心能力
+1. **全自动卫星过境嗅探**：在北京时间晚间过境窗口期，自动通过 CDSE OData 接口捕获最新过境切片（Burst 23790）。
+2. **NASA MEaSUREs ITS_LIVE 云端流式计算**：
+   - 彻底摆脱本地繁重算力，直接通过 HTTP Range 零下载流式切片读取 AWS S3 上的 Zarr 数据立方体；
+   - 提取珠峰孔布冰川 39 年（1985-2024）真实流速序列（均值 12.27 米/年），动态计算 Z-Score 速度异常度。
+3. **真实 2D 矩阵 InSAR 毫米级位移反演**：
+   - 消除硬编码，动态加载 20,278 像元真实数组；
+   - 自动在坐标 $(Y=285, X=613)$ 锁定相干性高达 **0.965** 的天然不动基岩；
+   - 算得视线向位移中位数 **`0.66 毫米`**，评估为微小缓慢蠕变（`HIGHLY_STABLE_MICRO_CREEP`）。
+4. **专项灾害管道全面落地**：
+   - **冰裂缝检测 (Crevasse)**：基于高频空间梯度与构造主应力走向，生成破裂斑块；
+   - **冰湖溃决风险 (GLOF)**：以伊姆扎湖（Imja Tsho）为目标，结合扩张率与冰碛坝雷达相干性量化风险；
+   - **雪崩/冰崩动力学**：输入高程落差与坡度，计算重力失稳指数；
+   - **DEM 物理约束门禁**：对坡度 $>38^\circ$ 极易产生雷达叠掩/阴影的区域实施**一票否决**，杜绝假阳性。
+5. **冰川状态数据库 (Glacier State Database)**：
+   - 内置 SQLite 引擎，沉淀孔布、绒布、康雄三大冰川历史档案，每次过境自动写入动态物理状态日志。
+6. **L4 Everest Anomaly Engine 综合判定**：
+   - 整合持续性、空间一致性、多源交叉验证、物理门禁、置信度（62%）与不确定性（38%），给出最终综合裁决。
 
+---
 
-### 多仓全自动联动架构说明
-本自动化流水线与前端展示插件已实现 100% 自动跨仓闭环：
-1. **[everest-insar-pipeline](https://github.com/Yizebaba/everest-insar-pipeline)**（后端算力仓）：在卫星过境窗口期自动侦听、自动调用 openEO 集群干涉、自动完成基岩零形变平差与毫米位移解算；
-2. **[hqmw-cryosphere-windy](https://github.com/Yizebaba/hqmw-cryosphere-windy)**（前端展示仓）：接收后端推送的最新位移数据，自动递增版本并打包发布到 Windy 官方节点，直接在地图上动态呈现基岩不动点与形变连线！
-
-### 部署与使用方法
-任何人只需 Fork 本仓库，并在 **Settings ➔ Secrets and variables ➔ Actions** 中填入：
-- `CDSE_USERNAME`：欧空局 Copernicus 账号
-- `CDSE_PASSWORD`：欧空局 Copernicus 密码
-即可享受每天自动无人值守解算！
-
-## 📦 Package Release & Agent Integration (软件包发布与 Agent 调用指南)
-
-This project is officially packaged and published as a standard Python Wheel package (`everest-glacier-engine`), ready to be called directly by AI Agents, LangGraph, or custom CLI scripts.
-
-### 1. Installation (安装)
-Install directly from GitHub Release via `pip`:
-```bash
-pip install https://github.com/Yizebaba/everest-insar-pipeline/releases/download/v1.0.0/everest_glacier_engine-1.0.0-py3-none-any.whl
-```
-Or install via git repository:
-```bash
-pip install git+https://github.com/Yizebaba/everest-insar-pipeline.git
-```
-
-### 2. CLI Execution (命令行直接运行)
-```bash
-everest-glacier
-```
-
-### 3. Agent & Python Invocation (Agent 代码直接调用)
-```python
-from pipeline import run_displacement_inversion
-from models.glavitu_rgi_bridge import GlaViTURGIBridge
-from models.cloud_services_adapter import CloudGlacierVelocityService, CloudInSARSAMAdapter
-
-# 1. Verify RGI 7.0 boundary
-bridge = GlaViTURGIBridge()
-in_glacier, name, debris_frac = bridge.verify_point_in_glacier(86.8585, 27.9868)
-print(f"Glacier Name: {name}, Debris Fraction: {debris_frac}")
-
-# 2. Query NASA ITS_LIVE baseline flow speed
-its_service = CloudGlacierVelocityService()
-its_meta = its_service.fetch_latest_itslive_metadata()
-print(f"Khumbu baseline flow speed: {its_meta.get('benchmark_velocity_khumbu_m_yr')} m/yr")
-
-# 3. Generate InSAR + SAM deformation region
-sam = CloudInSARSAMAdapter()
-feature = sam.generate_deformation_polygon_from_point(86.8585, 27.9868, disp_mm=0.66)
-print(f"SAM Polygon Area: {feature['properties']['area_approx_km2']} km2")
-```
+### 双仓全自动闭环架构
+1. **后端算力调度仓**：[`Yizebaba/everest-insar-pipeline`](https://github.com/Yizebaba/everest-insar-pipeline)（本仓库，负责侦听、解算、平差、物理门禁与综合决策）。
+2. **前端地图插件仓**：[`Yizebaba/hqmw-cryosphere-windy`](https://github.com/Yizebaba/hqmw-cryosphere-windy)（接收后端推来的成果，在 Windy 真实地图上渲染基岩不动点、形变连线、SAM 红色闭合面与 NASA 流速热力带）。
+   - **在线插件加载地址**：`https://windy-plugins.com/17744505/windy-plugin-everest-mhews/3.1.14/plugin.min.js`
