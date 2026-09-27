@@ -22,6 +22,7 @@ from .realtime_environmental_feeds import (
     RealtimeAtmosphericFeed,
     RealtimeGlaViTUInferenceEngine
 )
+from .foundation_model_embedder import FoundationModelCryoEmbedder
 
 __all__ = [
     "GlacierStateDatabase",
@@ -36,5 +37,5 @@ __all__ = [
     "EverestAnomalyEngine",
     "RealtimeSeismicFeed",
     "RealtimeAtmosphericFeed",
-    "RealtimeGlaViTUInferenceEngine",
+    "RealtimeGlaViTUInferenceEngine",`n    "FoundationModelCryoEmbedder",
 ]
