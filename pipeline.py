@@ -30,6 +30,7 @@ from models.realtime_environmental_feeds import (
     RealtimeAtmosphericFeed,
     RealtimeGlaViTUInferenceEngine
 )
+from models.foundation_model_embedder import FoundationModelCryoEmbedder
 
 AOI_BBOX = [86.55, 27.72, 87.05, 28.10]
 BURST_ID = 23790
@@ -101,6 +102,15 @@ def run_real_pipeline():
     # 4. 专项灾害管道执行 (裂隙检测、冰湖溃决、雪崩动力学、DEM物理约束)
     print("\n[4/6] [Hazard Pipelines] Running Crevasse, GLOF, Avalanche & DEM Physical Vetting...")
     
+    # 4.0.0 激活 NASA/IBM Prithvi-100M Geo-Spatial Foundation Model 冰川特征抽取
+    fm_embedder = FoundationModelCryoEmbedder(model_tag="nasa-impact/Prithvi-100M-Cryo")
+    fm_result = fm_embedder.extract_temporal_embeddings(
+        spectral_bands={"B02": 0.62, "B03": 0.58, "B04": 0.55, "B08": 0.68, "B11": 0.08, "B12": 0.06},
+        temporal_delta_days=12,
+        displacement_los_mm=float(valid_data[285, 613])
+    )
+    print(f"      Foundation Model ({fm_result['foundation_model']}): State={fm_result['representation_summary']['semantic_state']}, Stability={fm_result['cryo_stability_index']}")
+
     # 4.0 真实 GlaViTU 8 通道多模态特征推断 (S2 六波段 + DEM 高程坡度)
     glavitu_engine = RealtimeGlaViTUInferenceEngine()
     glavitu_result = glavitu_engine.predict_glacier_probability(
@@ -212,6 +222,7 @@ def run_real_pipeline():
         "results": {
             "insar_displacement": insar_state,
             "itslive_velocity_baseline": velocity_state,
+            "foundation_model_cryo": fm_result,
             "glavitu_inference": glavitu_result,
             "realtime_seismic": seismic_state,
             "realtime_weather": weather_state,
