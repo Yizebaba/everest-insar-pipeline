@@ -1,6 +1,6 @@
 {
   "pipeline": "Everest Autonomous InSAR & Multi-Hazard Pipeline (v5.0)",
-  "timestamp_utc": "2026-09-27T16:33:59.886146",
+  "timestamp_utc": "2026-09-27T16:38:16.727324",
   "insar_pair": {
     "master": "2026-09-04",
     "slave": "2026-09-16"
@@ -77,6 +77,20 @@
         }
       ]
     },
+    "foundation_model_cryo": {
+      "foundation_model": "nasa-impact/Prithvi-100M-Cryo",
+      "architecture": "Prithvi-ViT-MAE-Temporal",
+      "status": "ACTIVE_INFERENCE",
+      "embedding_dimension": 768,
+      "semantic_tokens": 196,
+      "cryo_anomaly_score": 0.1802,
+      "cryo_stability_index": 0.8198,
+      "representation_summary": {
+        "spectral_energy": 1.223,
+        "motion_coupling_factor": 0.012,
+        "semantic_state": "STABLE_HIGH_ALTITUDE_FIRN"
+      }
+    },
     "glavitu_inference": {
       "model_version": "GlaViTU-IGARSS2023-FeatureEngine",
       "primary_classification": "CLEAN_GLACIER_ICE",
@@ -102,13 +116,13 @@
       "events": []
     },
     "realtime_weather": {
-      "status": "fallback",
-      "source": "ECMWF Climate Baseline",
-      "summit_temperature_c": -20.5,
-      "precipitation_mm": 0.0,
-      "snowfall_cm": 0.0,
-      "freezing_level_height_m": 5200.0,
-      "wind_speed_kmh": 18.0,
+      "status": "success",
+      "source": "ECMWF ERA5-Land / Open-Meteo Operational Model",
+      "summit_temperature_c": -23.6,
+      "precipitation_mm": 0.2,
+      "snowfall_cm": 0.07,
+      "freezing_level_height_m": 5400.0,
+      "wind_speed_kmh": 8.3,
       "is_high_freeze_thaw_melt": false,
       "is_heavy_rain_or_melt": false
     },
