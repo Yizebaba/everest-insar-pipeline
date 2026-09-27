@@ -107,7 +107,7 @@ def run_real_pipeline():
     fm_result = fm_embedder.extract_temporal_embeddings(
         spectral_bands={"B02": 0.62, "B03": 0.58, "B04": 0.55, "B08": 0.68, "B11": 0.08, "B12": 0.06},
         temporal_delta_days=12,
-        displacement_los_mm=float(valid_data[285, 613])
+        displacement_los_mm=float(valid_disp[0] if len(valid_disp) > 0 else 0.66)
     )
     print(f"      Foundation Model ({fm_result['foundation_model']}): State={fm_result['representation_summary']['semantic_state']}, Stability={fm_result['cryo_stability_index']}")
 
