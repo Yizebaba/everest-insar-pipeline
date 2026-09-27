@@ -14,9 +14,10 @@ from typing import Dict, List, Optional
 class CloudGlacierVelocityService:
     """
     NASA JPL / NSIDC MEaSUREs ITS_LIVE 真实云端 Zarr 数据立方体流式读取服务
-    直接通过 HTTP Range 请求抽取珠峰孔布冰川 39 年 (1985-2024) 真实年度冰川流速与误差场！
+    支持 s3fs 协议原生云流式读取或 HTTP fsspec 适配，完全兼容现代 zarr 2.x 和 3.x 架构！
     """
-    ZARR_ANNUAL_URL = "https://its-live-data.s3.amazonaws.com/composites/annual/v2-updated-september2025/N20E080/ITS_LIVE_velocity_EPSG32645_120m_X450000_Y3050000.zarr"
+    ZARR_S3_URL = "s3://its-live-data/composites/annual/v2-updated-september2025/N20E080/ITS_LIVE_velocity_EPSG32645_120m_X450000_Y3050000.zarr"
+    ZARR_HTTP_URL = "https://its-live-data.s3.amazonaws.com/composites/annual/v2-updated-september2025/N20E080/ITS_LIVE_velocity_EPSG32645_120m_X450000_Y3050000.zarr"
 
     def __init__(self, target_utm_x: float = 486000.0, target_utm_y: float = 3097000.0):
         self.target_utm_x = target_utm_x
@@ -24,12 +25,19 @@ class CloudGlacierVelocityService:
 
     def fetch_real_glacier_velocity_series(self) -> Dict:
         """
-        通过 FSStore 零下载、按需切片读取 NASA 真实年度流速序列
+        通过 fsspec/s3fs 原生免认证映射器按需切片读取 NASA 真实年度流速序列 (解决 FSStore 废弃问题)
         """
-        print(f"[NASA ITS_LIVE] Connecting to cloud S3 Zarr at: {self.ZARR_ANNUAL_URL}...")
+        import fsspec
+        print(f"[NASA ITS_LIVE] Connecting to cloud S3 Zarr at: {self.ZARR_S3_URL}...")
         try:
-            store = zarr.storage.FSStore(self.ZARR_ANNUAL_URL)
-            root = zarr.open(store, mode="r")
+            # 优先采用 s3fs 原生匿名流式读取
+            try:
+                mapper = fsspec.get_mapper(self.ZARR_S3_URL, anon=True)
+                root = zarr.open(mapper, mode="r")
+            except Exception:
+                # 备用方案：HTTP 通用映射器
+                mapper = fsspec.get_mapper(self.ZARR_HTTP_URL)
+                root = zarr.open(mapper, mode="r")
             
             x_arr = root["x"][:]
             y_arr = root["y"][:]
