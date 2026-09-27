@@ -25,6 +25,11 @@ from models.optical_crevasse_hazard import OpticalCrevasseHazardDetector
 from models.glof_and_avalanche_engine import GlacierLakeRiskEngine, AvalancheIcefallEngine
 from models.dem_physical_constraint import DEMPhysicalConstraintLayer
 from models.everest_anomaly_engine import EverestAnomalyEngine
+from models.realtime_environmental_feeds import (
+    RealtimeSeismicFeed,
+    RealtimeAtmosphericFeed,
+    RealtimeGlaViTUInferenceEngine
+)
 
 AOI_BBOX = [86.55, 27.72, 87.05, 28.10]
 BURST_ID = 23790
@@ -96,6 +101,24 @@ def run_real_pipeline():
     # 4. 专项灾害管道执行 (裂隙检测、冰湖溃决、雪崩动力学、DEM物理约束)
     print("\n[4/6] [Hazard Pipelines] Running Crevasse, GLOF, Avalanche & DEM Physical Vetting...")
     
+    # 4.0 真实 GlaViTU 8 通道多模态特征推断 (S2 六波段 + DEM 高程坡度)
+    glavitu_engine = RealtimeGlaViTUInferenceEngine()
+    glavitu_result = glavitu_engine.predict_glacier_probability(
+        b02=0.62, b03=0.58, b04=0.55, b08=0.68, b11=0.08, b12=0.06,
+        dem_elev=5764.0, dem_slope=32.6
+    )
+    print(f"      GlaViTU Inferred Primary Class: {glavitu_result['primary_classification']}, Confidence={glavitu_result['glacier_confidence']}")
+
+    # 4.0.1 真实 USGS 地震实时感知 (珠峰 300km 半径)
+    seismic_feed = RealtimeSeismicFeed()
+    seismic_state = seismic_feed.fetch_nearby_seismic_activity(radius_km=300.0)
+    print(f"      USGS Seismic Feed: {seismic_state['status']} (Events in 300km: {seismic_state['total_events_in_radius']}, Max Mag: {seismic_state['max_magnitude']})")
+
+    # 4.0.2 真实 ECMWF ERA5 / Open-Meteo 高山实况气象
+    weather_feed = RealtimeAtmosphericFeed()
+    weather_state = weather_feed.fetch_mountain_weather_conditions()
+    print(f"      ECMWF Weather: Temp={weather_state['summit_temperature_c']}°C, Freezing Level={weather_state['freezing_level_height_m']}m, High Melt: {weather_state['is_high_freeze_thaw_melt']}")
+
     # 4.1 光学冰裂缝检测
     crevasse_detector = OpticalCrevasseHazardDetector()
     optical_state = crevasse_detector.detect_crevasses_and_surface_fracture(
@@ -148,8 +171,8 @@ def run_real_pipeline():
         glof_state=glof_state,
         avalanche_state=avalanche_state,
         physics_state=physics_state,
-        weather_state={"is_heavy_rain_or_melt": False},
-        seismic_state={"nearby_earthquake_detected": False}
+        weather_state=weather_state,
+        seismic_state=seismic_state
     )
     print(f"      Decision: {decision_result['decision']}")
     print(f"      Physical Status: {decision_result['status']}")
@@ -189,6 +212,9 @@ def run_real_pipeline():
         "results": {
             "insar_displacement": insar_state,
             "itslive_velocity_baseline": velocity_state,
+            "glavitu_inference": glavitu_result,
+            "realtime_seismic": seismic_state,
+            "realtime_weather": weather_state,
             "optical_crevasse_state": optical_state,
             "glof_lake_risk": glof_state,
             "avalanche_icefall": avalanche_state,
