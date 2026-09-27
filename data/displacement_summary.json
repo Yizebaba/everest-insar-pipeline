@@ -1,6 +1,6 @@
 {
   "pipeline": "Everest Autonomous InSAR & Multi-Hazard Pipeline (v5.0)",
-  "timestamp_utc": "2026-09-27T07:18:36.734356",
+  "timestamp_utc": "2026-09-27T16:33:59.886146",
   "insar_pair": {
     "master": "2026-09-04",
     "slave": "2026-09-16"
@@ -76,6 +76,41 @@
           "error_m_yr": 1.0
         }
       ]
+    },
+    "glavitu_inference": {
+      "model_version": "GlaViTU-IGARSS2023-FeatureEngine",
+      "primary_classification": "CLEAN_GLACIER_ICE",
+      "glacier_confidence": 0.929,
+      "probabilities": {
+        "clean_ice": 0.929,
+        "debris_covered_ice": 0.15,
+        "bedrock": 0.05
+      },
+      "input_metrics": {
+        "ndsi": 0.758,
+        "ndvi": 0.106,
+        "elevation_m": 5764.0,
+        "slope_deg": 32.6
+      }
+    },
+    "realtime_seismic": {
+      "status": "success",
+      "source": "USGS Earthquake Hazards Program",
+      "total_events_in_radius": 0,
+      "nearby_earthquake_detected": false,
+      "max_magnitude": 0.0,
+      "events": []
+    },
+    "realtime_weather": {
+      "status": "fallback",
+      "source": "ECMWF Climate Baseline",
+      "summit_temperature_c": -20.5,
+      "precipitation_mm": 0.0,
+      "snowfall_cm": 0.0,
+      "freezing_level_height_m": 5200.0,
+      "wind_speed_kmh": 18.0,
+      "is_high_freeze_thaw_melt": false,
+      "is_heavy_rain_or_melt": false
     },
     "optical_crevasse_state": {
       "ndsi": 0.797,
