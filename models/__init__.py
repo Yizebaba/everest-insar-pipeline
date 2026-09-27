@@ -8,6 +8,7 @@ Contains:
 - glof_and_avalanche_engine: Glacier lake outburst risk & Avalanche mechanics
 - dem_physical_constraint: Terrain slope/aspect/elevation hard physical vetting
 - everest_anomaly_engine: L4 Multi-source decision & confidence evaluation
+- realtime_environmental_feeds: USGS real-time seismic, ECMWF weather, and GlaViTU inferencer
 """
 from .glacier_state_database import GlacierStateDatabase
 from .glavitu_rgi_bridge import GlaViTURGIBridge, EVEREST_RGI_CATALOG
@@ -16,7 +17,11 @@ from .optical_crevasse_hazard import OpticalCrevasseHazardDetector
 from .glof_and_avalanche_engine import GlacierLakeRiskEngine, AvalancheIcefallEngine
 from .dem_physical_constraint import DEMPhysicalConstraintLayer
 from .everest_anomaly_engine import EverestAnomalyEngine
-from
+from .realtime_environmental_feeds import (
+    RealtimeSeismicFeed,
+    RealtimeAtmosphericFeed,
+    RealtimeGlaViTUInferenceEngine
+)
 
 __all__ = [
     "GlacierStateDatabase",
