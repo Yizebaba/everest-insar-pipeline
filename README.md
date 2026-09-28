@@ -1,4 +1,4 @@
-# Everest Anomaly Engine & Autonomous Pipeline (珠峰多源防灾与 InSAR 全自动解算引擎)
+# Everest Anomaly Engine & Autonomous Pipeline (珠峰多源冰川与 InSAR 全自动解算引擎)
 
 [English](#english) | [中文说明](#chinese)
 
@@ -138,7 +138,7 @@ print(f"Recorded glacier state inventory count: {len(summary)}")
 <a name="chinese"></a>
 ## 中文说明
 
-**珠穆朗玛峰多源灾害与 InSAR 全自动解算分析引擎（v5.0 终极版）**。
+**珠穆朗玛峰多源冰川与 InSAR 全自动解算分析引擎（v5.0 终极版）**。
 
 ### 核心设计与科学法则
 本系统坚守防灾减灾最高科学红线：**检测到异常 $\neq$ 灾害预警（$\mathbf{Detection \neq Warning}$）**。
