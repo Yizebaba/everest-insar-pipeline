@@ -31,6 +31,7 @@ from models.realtime_environmental_feeds import (
     RealtimeGlaViTUInferenceEngine
 )
 from models.foundation_model_embedder import FoundationModelCryoEmbedder
+from models.cdse_sentinel1 import discover_sentinel1_slc_pair
 
 AOI_BBOX = [86.55, 27.72, 87.05, 28.10]
 BURST_ID = 23790
@@ -38,25 +39,13 @@ LAMBDA_C_BAND = 0.055465  # 5.5465 cm
 SCALE_PHASE_TO_MM = -(LAMBDA_C_BAND / (4.0 * np.pi)) * 1000.0  # -4.4138 mm/rad
 
 def check_new_acquisitions_precise():
-    print("[1/6] [L0 Data] Querying Copernicus CDSE OData API for burst 23790...")
-    odata_url = f"https://catalogue.dataspace.copernicus.eu/odata/v1/Bursts?$filter=contains(Name,'{BURST_ID}')&$orderby=OriginDate desc&$top=5"
-    latest_date_str, prev_date_str = None, None
-    try:
-        r = requests.get(odata_url, timeout=10)
-        if r.status_code == 200:
-            items = r.json().get("value", [])
-            dates = sorted(list(set([it["OriginDate"][:10] for it in items])), reverse=True)
-            if len(dates) >= 2:
-                latest_date_str, prev_date_str = dates[0], dates[1]
-                print(f"[1/6] Real-time CDSE burst detected: Latest={latest_date_str}, Prev={prev_date_str}")
-    except Exception as e:
-        print(f"[1/6] OData query notice: {e}, using verified baseline pair.")
-
-    if not latest_date_str:
-        latest_date_str, prev_date_str = "2026-09-16", "2026-09-04"
-
-    return prev_date_str, latest_date_str
-
+    print("[1/6] [L0 Data] Querying Copernicus CDSE Products for newest AOI Sentinel-1 SLC pair...")
+    discovery = discover_sentinel1_slc_pair()
+    latest = discovery["latest"]
+    previous = discovery["previous"]
+    print(f"[1/6] CDSE SLC detected: latest={latest['date']} ({latest['name']}), previous={previous['date']} ({previous['name']})")
+    print(f"[1/6] Remote products: latest_id={latest['id']}, previous_id={previous['id']}")
+    return previous["date"], latest["date"]
 def run_real_pipeline():
     print("=" * 70)
     print("=== STARTING EVEREST ANOMALY ENGINE FULL REAL PIPELINE (v5.0) ===")
