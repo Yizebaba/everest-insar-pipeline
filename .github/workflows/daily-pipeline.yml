@@ -30,6 +30,29 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
+          pip install rasterio matplotlib
+
+      - name: Configure OpenEO refresh token
+        env:
+          OPENEO_REFRESH_TOKEN: ${{ secrets.OPENEO_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$OPENEO_REFRESH_TOKEN" ]; then
+            echo "OPENEO_REFRESH_TOKEN is not configured; cloud InSAR step will be skipped."
+            exit 0
+          fi
+          mkdir -p "$HOME/.local/share/openeo-python-client"
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          raw = os.environ["OPENEO_REFRESH_TOKEN"]
+          try:
+              parsed = json.loads(raw)
+          except json.JSONDecodeError:
+              parsed = raw
+          path = Path.home() / ".local/share/openeo-python-client/refresh-tokens.json"
+          path.write_text(json.dumps(parsed) if not isinstance(parsed, str) else parsed)
+          path.chmod(0o600)
+          PY
 
       - name: Run LangGraph Auto-Coder Agent
         if: ${{ github.event.inputs.run_auto_coder == 'true' || github.event_name == 'workflow_dispatch' }}
@@ -44,9 +67,19 @@ jobs:
         run: |
           python pipeline.py
 
+      - name: Run validated cloud InSAR pair
+        env:
+          OPENEO_REFRESH_TOKEN: ${{ secrets.OPENEO_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$OPENEO_REFRESH_TOKEN" ]; then
+            echo "OPENEO_REFRESH_TOKEN is not configured; skipping cloud InSAR."
+            exit 0
+          fi
+          python cloud_insar_pipeline.py --output data/cloud_insar
+
       - name: Commit and Push Results & Auto-generated Code
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/ models/
+          git add data/ models/ cloud_insar_pipeline.py
           git diff --quiet && git diff --staged --quiet || (git commit -m "chore(agent): commit auto-generated module and updated InSAR results" && git push)
