@@ -1,6 +1,6 @@
 {
   "pipeline": "Everest Autonomous InSAR & Multi-Hazard Pipeline (v5.0)",
-  "timestamp_utc": "2026-10-09T19:15:55.965100",
+  "timestamp_utc": "2026-10-10T07:53:51.034795",
   "insar_pair": {
     "master": "2026-10-03",
     "slave": "2026-10-06"
@@ -118,11 +118,11 @@
     "realtime_weather": {
       "status": "success",
       "source": "ECMWF ERA5-Land / Open-Meteo Operational Model",
-      "summit_temperature_c": -35.8,
+      "summit_temperature_c": -33.7,
       "precipitation_mm": 0.0,
       "snowfall_cm": 0.0,
-      "freezing_level_height_m": 5130.0,
-      "wind_speed_kmh": 1.1,
+      "freezing_level_height_m": 4900.0,
+      "wind_speed_kmh": 4.1,
       "is_high_freeze_thaw_melt": false,
       "is_heavy_rain_or_melt": false
     },
